@@ -15,6 +15,19 @@ go install github.com/poolski/fueltracker
 
 If you just want to look up the prices of fuel from your console, you'll need to copy the included `config.json.example` to a location on your hard drive and and pass the location to the tool using the `--config` flag.
 
+The config should look like this
+
+```json
+{
+  "ukvd_api_key": "YOURAPIKEYHERE",
+  "google": {
+    "credentials_path": "~/.config/fueltracker/service_account.json",
+    "spreadsheet_id": "SPREADSHEET_ID_HERE",
+    "worksheet_range": "Sheet1!A2"
+  }
+}
+```
+
 By default, the tool will look for this file at `~/.config/fueltracker/config.json`
 
 If you aren't planning to use Google Sheets, you can omit setting the `google` config.
