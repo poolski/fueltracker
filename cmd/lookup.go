@@ -41,4 +41,5 @@ var lookupCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(lookupCmd)
+	lookupCmd.Flags().StringP("station", "s", "", "(optional) specific fuel station to show prices for")
 }

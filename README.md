@@ -21,7 +21,7 @@ The config should look like this
 {
   "ukvd_api_key": "YOURAPIKEYHERE",
   "google": {
-    "credentials_path": "~/.config/fueltracker/service_account.json",
+    "credentials_path": "/home/user/.config/fueltracker/service_account.json",
     "spreadsheet_id": "SPREADSHEET_ID_HERE",
     "worksheet_range": "Sheet1!A2"
   }
@@ -33,7 +33,7 @@ By default, the tool will look for this file at `~/.config/fueltracker/config.js
 If you aren't planning to use Google Sheets, you can omit setting the `google` config.
 Otherwise, you will need to follow the instructions [here](https://robocorp.com/docs/development-guide/google-sheets/interacting-with-google-sheets) to generate a service account key for this tool to use.
 
-Save the file somewhere on disk and configure the `google.credentials_path` appropriately. Alternatively, you can `export GOOGLE_APPLICATION_CREDENTIALS="/home/user/Downloads/service-account-file.json"` before running the tool.
+Save the file somewhere on disk and configure the `google.credentials_path` appropriately with the **full path**.
 
 ### Usage Examples
 

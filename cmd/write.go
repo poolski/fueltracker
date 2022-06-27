@@ -5,6 +5,7 @@ Copyright © 2022 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
+	"errors"
 	"log"
 
 	"github.com/poolski/fueltracker/config"
@@ -22,12 +23,15 @@ var writeCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		postcode, _ := cmd.Flags().GetString("postcode")
 		fuel, _ := cmd.Flags().GetString("fuel")
-		station, _ := cmd.Flags().GetString("station")
+		station, err := cmd.Flags().GetString("station")
+		if err != nil {
+			return errors.New("station flag required but not set")
+		}
 
 		log.Printf("fetching %s fuel prices for %s...", fuel, station)
 
 		cfg := &config.GoogleConfig{
-			CredentialsPath: viper.GetString("google.service_account"),
+			CredentialsPath: viper.GetString("google.credentials_path"),
 			SpreadsheetID:   viper.GetString("google.spreadsheet_id"),
 			WorksheetRange:  viper.GetString("google.worksheet_range"),
 		}
@@ -64,7 +68,6 @@ var writeCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(writeCmd)
-	if err := rootCmd.MarkPersistentFlagRequired("station"); err != nil {
-		log.Println(err)
-	}
+	writeCmd.Flags().StringP("station", "s", "", "specific fuel station to show prices for")
+	writeCmd.MarkFlagRequired("station")
 }
