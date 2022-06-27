@@ -40,7 +40,9 @@ func init() {
 
 	rootCmd.PersistentFlags().StringVarP(&cfgFile, "config", "c", "", "config file (default is ~/.config/fueltracker/config.json)")
 	rootCmd.PersistentFlags().StringP("postcode", "p", "", "postcode to look up fuel prices for e.g. 'AB123XY'")
-	rootCmd.MarkPersistentFlagRequired("postcode")
+	if err := rootCmd.MarkPersistentFlagRequired("postcode"); err != nil {
+		log.Fatal(err)
+	}
 
 	rootCmd.PersistentFlags().StringP("station", "s", "", "(optional) specific fuel station to show prices for")
 	rootCmd.PersistentFlags().StringP("fuel", "f", "unleaded", "(optional) specific fuel type to show prices for")

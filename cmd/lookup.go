@@ -17,14 +17,15 @@ var lookupCmd = &cobra.Command{
 	Long:  `lookup AB123XY`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		c := fueldata.New(viper.GetString("ukvd_api_key"))
+
 		postcode, _ := cmd.Flags().GetString("postcode")
 		fuel, _ := cmd.Flags().GetString("fuel")
 		station, _ := cmd.Flags().GetString("station")
+
 		opts := fueldata.QueryOpts{
 			FuelType: fuel,
 		}
 
-		// The API expects capitalized postcodes. Natch.
 		fuelData, err := c.FetchFuelDataForPostcode(postcode)
 		if err != nil {
 			return err
