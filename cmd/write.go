@@ -37,7 +37,9 @@ var writeCmd = &cobra.Command{
 		}
 
 		opts := fueldata.QueryOpts{
+			Postcode: postcode,
 			FuelType: fuel,
+			Location: station,
 		}
 
 		sheets, err := sheets.New(cfg)
@@ -47,14 +49,9 @@ var writeCmd = &cobra.Command{
 
 		c := fueldata.New(viper.GetString("ukvd_api_key"))
 
-		fuelData, err := c.FetchFuelDataForPostcode(postcode)
+		records, err := c.GetFuelPrices(opts)
 		if err != nil {
 			return err
-		}
-
-		records := c.ShowSpecificFuelPrices(fuelData, opts)
-		if station != "" {
-			records = c.GetPriceForLocation(records, station)
 		}
 
 		if err := sheets.WriteRecordToSpreadsheet(records[0]); err == nil {
@@ -69,5 +66,7 @@ var writeCmd = &cobra.Command{
 func init() {
 	rootCmd.AddCommand(writeCmd)
 	writeCmd.Flags().StringP("station", "s", "", "specific fuel station to show prices for")
-	writeCmd.MarkFlagRequired("station")
+	if err := writeCmd.MarkFlagRequired("station"); err != nil {
+		log.Fatal(err)
+	}
 }

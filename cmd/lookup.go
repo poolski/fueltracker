@@ -23,17 +23,16 @@ var lookupCmd = &cobra.Command{
 		station, _ := cmd.Flags().GetString("station")
 
 		opts := fueldata.QueryOpts{
+			Postcode: postcode,
 			FuelType: fuel,
+			Location: station,
 		}
 
-		fuelData, err := c.FetchFuelDataForPostcode(postcode)
+		records, err := c.GetFuelPrices(opts)
 		if err != nil {
 			return err
 		}
-		records := c.ShowSpecificFuelPrices(fuelData, opts)
-		if station != "" {
-			records = c.GetPriceForLocation(records, station)
-		}
+
 		fueldata.PrintFuelPrices(records)
 		return nil
 	},
