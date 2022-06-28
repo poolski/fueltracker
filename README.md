@@ -28,10 +28,17 @@ The config should look like this
 }
 ```
 
+Your spreadsheet_id can be found by looking at the address of your Google Sheets spreadsheet, e.g. 
+```
+https://docs.google.com/spreadsheets/d/SPREADSHEET_ID_HERE/
+```
+
 By default, the tool will look for this file at `~/.config/fueltracker/config.json`
 
 If you aren't planning to use Google Sheets, you can omit setting the `google` config.
 Otherwise, you will need to follow the instructions [here](https://robocorp.com/docs/development-guide/google-sheets/interacting-with-google-sheets) to generate a service account key for this tool to use.
+
+Make sure that you _share_ the spreadsheet with the Service Account user that you've created, and give it `Editor` access, or it won't be able to write anything to your spreadsheet.
 
 Save the file somewhere on disk and configure the `google.credentials_path` appropriately with the **full path**.
 
