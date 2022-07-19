@@ -29,7 +29,7 @@ func New(cfg *config.GoogleConfig) (*GSheets, error) {
 	return client, nil
 }
 
-func (s *GSheets) WriteRecordToSpreadsheet(rec *types.SpecificFuelPrice) error {
+func (s *GSheets) Write(rec *types.SpecificFuelPrice) error {
 	spreadsheetID := s.Config.SpreadsheetID
 	writeRange := s.Config.WorksheetRange
 

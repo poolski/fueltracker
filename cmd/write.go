@@ -54,7 +54,7 @@ var writeCmd = &cobra.Command{
 			return err
 		}
 
-		if err := sheets.WriteRecordToSpreadsheet(records[0]); err == nil {
+		if err := sheets.Write(records[0]); err == nil {
 			log.Println("successfully written latest price to Google Sheets")
 			return nil
 		} else {

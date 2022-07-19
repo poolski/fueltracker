@@ -28,8 +28,9 @@ The config should look like this
 }
 ```
 
-Your spreadsheet_id can be found by looking at the address of your Google Sheets spreadsheet, e.g. 
-```
+Your spreadsheet_id can be found by looking at the address of your Google Sheets spreadsheet, e.g.
+
+```text
 https://docs.google.com/spreadsheets/d/SPREADSHEET_ID_HERE/
 ```
 

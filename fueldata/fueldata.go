@@ -5,10 +5,12 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"net/url"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/olekukonko/tablewriter"
 	"github.com/poolski/fueltracker/types"
@@ -138,12 +140,17 @@ func (c *FuelData) GetFuelPrices(opts QueryOpts) ([]*types.SpecificFuelPrice, er
 
 func filterPriceByFuel(stn types.FuelStation, ft string) *types.SpecificFuelPrice {
 	sfp := &types.SpecificFuelPrice{}
+	timeFormat := "1/2/2006 3:04:05 PM"
 	for _, fp := range stn.FuelPriceList {
+		timestamp, err := time.Parse(timeFormat, fp.LatestRecordedPrice.TimeRecorded)
+		if err != nil {
+			log.Println(err)
+		}
 		if fp.FuelType == ft {
 			sfp.Station = stn.Name
 			sfp.FuelType = ft
 			sfp.Price = fp.LatestRecordedPrice.InGbp
-			sfp.RecordedAt = fp.LatestRecordedPrice.TimeRecorded
+			sfp.RecordedAt = timestamp.Local().Format("02/01/2006")
 		}
 	}
 	return sfp
