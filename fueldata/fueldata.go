@@ -133,6 +133,7 @@ func (c *FuelData) GetFuelPrices(opts QueryOpts) ([]*types.SpecificFuelPrice, er
 			FuelType:   "NOTHING FOUND",
 			Price:      0,
 			RecordedAt: "",
+			MonthYear:  "",
 		})
 	}
 	return prices, nil
@@ -151,6 +152,7 @@ func filterPriceByFuel(stn types.FuelStation, ft string) *types.SpecificFuelPric
 			sfp.FuelType = ft
 			sfp.Price = fp.LatestRecordedPrice.InGbp
 			sfp.RecordedAt = timestamp.Local().Format("02/01/2006")
+			sfp.MonthYear = timestamp.Local().Format("1/2006")
 		}
 	}
 	return sfp

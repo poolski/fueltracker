@@ -38,7 +38,8 @@ func (s *GSheets) Write(rec *types.SpecificFuelPrice) error {
 	vals := []interface{}{rec.RecordedAt, rec.Station, rec.FuelType, rec.Price}
 	vr.Values = append(vr.Values, vals)
 
-	_, err := s.Service.Spreadsheets.Values.Append(spreadsheetID, writeRange, &vr).ValueInputOption("RAW").Do()
+	_, err := s.Service.Spreadsheets.Values.Append(
+		spreadsheetID, writeRange, &vr).ValueInputOption("USER_ENTERED").Do()
 	if err != nil {
 		return fmt.Errorf("failed to write to spreadsheet: %v", err)
 	}
