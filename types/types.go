@@ -67,4 +67,5 @@ type SpecificFuelPrice struct {
 	FuelType   string
 	Price      float64
 	RecordedAt string
+	MonthYear  string
 }
