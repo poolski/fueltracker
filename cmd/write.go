@@ -8,6 +8,7 @@ import (
 	"errors"
 	"log"
 
+	"github.com/PremiereGlobal/go-deadmanssnitch"
 	"github.com/poolski/fueltracker/config"
 	"github.com/poolski/fueltracker/fueldata"
 	"github.com/poolski/fueltracker/sheets"
@@ -55,6 +56,11 @@ var writeCmd = &cobra.Command{
 		}
 
 		if err := sheets.Write(records[0]); err == nil {
+			// If you don't have a Dead Man's Snitch account, we won't do this.
+			if c.SnitchAPIKey != "" {
+				dms := deadmanssnitch.NewClient(c.SnitchAPIKey)
+				dms.CheckIn(viper.GetString("snitch_id")) // Update Dead Man's Snitch
+			}
 			log.Println("successfully written latest price to Google Sheets")
 			return nil
 		} else {

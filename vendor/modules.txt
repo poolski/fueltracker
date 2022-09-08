@@ -1,6 +1,9 @@
 # cloud.google.com/go/compute v1.7.0
 ## explicit; go 1.15
 cloud.google.com/go/compute/metadata
+# github.com/PremiereGlobal/go-deadmanssnitch v0.1.0
+## explicit; go 1.12
+github.com/PremiereGlobal/go-deadmanssnitch
 # github.com/fsnotify/fsnotify v1.5.4
 ## explicit; go 1.16
 github.com/fsnotify/fsnotify

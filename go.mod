@@ -3,6 +3,7 @@ module github.com/poolski/fueltracker
 go 1.17
 
 require (
+	github.com/PremiereGlobal/go-deadmanssnitch v0.1.0
 	github.com/olekukonko/tablewriter v0.0.5
 	github.com/spf13/cobra v1.5.0
 	github.com/spf13/viper v1.12.0

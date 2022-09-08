@@ -1,5 +1,7 @@
 {
   "ukvd_api_key": "YOURAPIKEYHERE",
+  "snitch_api_key": "YOURAPIKEYHERE",
+  "snitch_id": "abc123xyz",
   "google": {
     "credentials_path": "~/.config/fueltracker/service_account.json",
     "spreadsheet_id": "SPREADSHEET_ID_HERE",
