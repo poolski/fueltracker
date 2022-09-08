@@ -14,6 +14,7 @@ import (
 
 	"github.com/olekukonko/tablewriter"
 	"github.com/poolski/fueltracker/types"
+	"github.com/spf13/viper"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 )
@@ -27,16 +28,18 @@ const (
 )
 
 type FuelData struct {
-	BaseURL    string
-	APIKey     string
-	titleCaser cases.Caser
+	APIKey       string
+	BaseURL      string
+	SnitchAPIKey string
+	titleCaser   cases.Caser
 }
 
-func New(APIKey string) *FuelData {
+func New(UkvdAPIKey string) *FuelData {
 	return &FuelData{
-		BaseURL:    "https://uk1.ukvehicledata.co.uk",
-		APIKey:     APIKey,
-		titleCaser: cases.Title(language.English, cases.NoLower),
+		APIKey:       UkvdAPIKey,
+		BaseURL:      "https://uk1.ukvehicledata.co.uk",
+		SnitchAPIKey: viper.GetString("snitch_api_key"),
+		titleCaser:   cases.Title(language.English, cases.NoLower),
 	}
 }
 
