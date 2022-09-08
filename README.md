@@ -50,3 +50,16 @@ fueltracker --help
 fueltracker lookup -p AB123XY
 fueltracker write -p AB123XY -f Unleaded -s "STATION NAME"
 ```
+
+### Dead Man's Snitch
+
+If you want to use this tool on a schedule, e.g. with `systemd` timers (out of scope for this README), you might want to sign up for a free account with [Dead Man's Snitch](https://deadmanssnitch.com), which will tell you if the script fails to run for whatever reason.
+
+You'll need to configure an API key in DMS and create a new Snitch. You will need to add two fields to `~/.config/fueltracker/config.json` to make Fueltracker report back to DMS:
+
+```json
+{
+  "snitch_api_key": "YOURAPIKEYHERE",
+  "snitch_id": "abc123xyz"
+}
+```
