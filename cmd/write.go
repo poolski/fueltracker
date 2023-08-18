@@ -58,18 +58,18 @@ func doWrite(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("getting fuel prices: %w", err)
 	}
 
-	if err := sheets.Write(records[0]); err == nil {
+	if err := sheets.Write(records[0]); err != nil {
+		return err
+	} else {
 		// If you don't have a Dead Man's Snitch account, we won't do this.
 		if c.SnitchAPIKey != "" {
 			dms := deadmanssnitch.NewClient(c.SnitchAPIKey)
 			if err := dms.CheckIn(viper.GetString("snitch_id")); err != nil {
-				log.Printf("writing to DMS: %w", err)
+				log.Printf("writing to DMS: %v", err)
 			}
 		}
 		log.Println("successfully written latest price to Google Sheets")
 		return nil
-	} else {
-		return err
 	}
 }
 
