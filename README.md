@@ -1,5 +1,7 @@
 # Fuel Tracker
 
+[![golangci-lint](https://github.com/poolski/fueltracker/actions/workflows/golangci-lint.yaml/badge.svg)](https://github.com/poolski/fueltracker/actions/workflows/golangci-lint.yaml)
+
 > This is still a work in progress. I haven't wired up much.
 
 This tool makes calls to the [UK Vehicle Data](https://ukvehicledata.co.uk) Fuel Prices API (for which you will need an API key) to get the 10 nearest fuel stations, and dumps the result to your console.
