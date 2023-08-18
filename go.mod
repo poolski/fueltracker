@@ -1,6 +1,6 @@
 module github.com/poolski/fueltracker
 
-go 1.17
+go 1.20
 
 require (
 	github.com/PremiereGlobal/go-deadmanssnitch v0.1.0
@@ -14,7 +14,7 @@ require (
 require (
 	github.com/google/uuid v1.3.0 // indirect
 	golang.org/x/net v0.0.0-20220622184535-263ec571b305 // indirect
-	golang.org/x/sys v0.0.0-20220622161953-175b2fd9d664 // indirect
+	golang.org/x/sys v0.11.0 // indirect
 	google.golang.org/genproto v0.0.0-20220624142145-8cd45d7dbd1f // indirect
 )
 
@@ -39,6 +39,7 @@ require (
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/subosito/gotenv v1.3.0 // indirect
 	go.opencensus.io v0.23.0 // indirect
+	golang.org/x/exp v0.0.0-20230817173708-d852ddb80c63
 	golang.org/x/oauth2 v0.0.0-20220622183110-fd043fe589d2 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/grpc v1.47.0 // indirect
