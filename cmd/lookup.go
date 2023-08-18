@@ -1,7 +1,3 @@
-/*
-Copyright © 2022 NAME HERE <EMAIL ADDRESS>
-
-*/
 package cmd
 
 import (
@@ -15,27 +11,29 @@ var lookupCmd = &cobra.Command{
 	Use:   "lookup",
 	Short: "Look up fuel data for a postcode",
 	Long:  `lookup AB123XY`,
-	RunE: func(cmd *cobra.Command, args []string) error {
-		c := fueldata.New(viper.GetString("ukvd_api_key"))
+	RunE:  doLookup,
+}
 
-		postcode, _ := cmd.Flags().GetString("postcode")
-		fuel, _ := cmd.Flags().GetString("fuel")
-		station, _ := cmd.Flags().GetString("station")
+func doLookup(cmd *cobra.Command, args []string) error {
+	c := fueldata.New(viper.GetString("ukvd_api_key"))
 
-		opts := fueldata.QueryOpts{
-			Postcode: postcode,
-			FuelType: fuel,
-			Location: station,
-		}
+	postcode, _ := cmd.Flags().GetString("postcode")
+	fuel, _ := cmd.Flags().GetString("fuel")
+	station, _ := cmd.Flags().GetString("station")
 
-		records, err := c.GetFuelPrices(opts)
-		if err != nil {
-			return err
-		}
+	opts := fueldata.QueryOpts{
+		Postcode: postcode,
+		FuelType: fuel,
+		Location: station,
+	}
 
-		fueldata.PrintFuelPrices(records)
-		return nil
-	},
+	records, err := c.GetFuelPrices(opts)
+	if err != nil {
+		return err
+	}
+
+	fueldata.PrintFuelPrices(records)
+	return nil
 }
 
 func init() {
