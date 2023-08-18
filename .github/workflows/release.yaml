@@ -7,8 +7,8 @@ permissions:
   packages: write
 
 jobs:
-  release-linux-amd64:
-    name: release linux/amd64
+  relese:
+    name: make releases
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -17,7 +17,8 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           goos: linux
           goarch: amd64
-      - with:
+      - uses: wangyoucao577/go-release-action@v1
+        with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           goos: linux
           goarch: arm64
