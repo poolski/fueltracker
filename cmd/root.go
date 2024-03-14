@@ -52,10 +52,21 @@ func init() {
 	rootCmd.PersistentFlags().StringVarP(&cfgFile, "config", "c", confDir+"/fueltracker/config.json", "config file")
 
 	rootCmd.PersistentFlags().StringP("postcode", "p", "", "postcode to look up fuel prices for e.g. 'AB123XY'")
-	if err := rootCmd.MarkPersistentFlagRequired("postcode"); err != nil {
-		log.Fatal(err)
+	rootCmd.PersistentFlags().StringP("fuel", "f", "E10", "(optional) fuel code to look up. Valid options are 'E10' (Unleaded), 'E5' (Premium unleaded), 'B7' (Diesel), 'SDV' (Premium diesel)")
+	rootCmd.PersistentFlags().StringP("site-id", "s", "", "(optional) site ID to look up. If this is set, the postcode flag is ignored")
+	rootCmd.PersistentFlags().StringP("radius", "r", "5.0", "(optional) radius in km to search around the postcode")
+
+	// Check if site ID is set, ignore postcode flag
+	if siteID := rootCmd.PersistentFlags().Lookup("site-id").Value.String(); siteID != "" {
+		if err := rootCmd.PersistentFlags().SetAnnotation("postcode", cobra.BashCompOneRequiredFlag, []string{"false"}); err != nil {
+			log.Fatal(err)
+		}
+	} else {
+		// Require postcode flag
+		if err := rootCmd.PersistentFlags().SetAnnotation("postcode", cobra.BashCompOneRequiredFlag, []string{"true"}); err != nil {
+			log.Fatal(err)
+		}
 	}
-	rootCmd.PersistentFlags().StringP("fuel", "f", "unleaded", "(optional) specific fuel type to show prices for")
 
 	// The `generate` command doesn't need the postcode flag
 	if err := configCmd.InheritedFlags().SetAnnotation("postcode", cobra.BashCompOneRequiredFlag, []string{"false"}); err != nil {
