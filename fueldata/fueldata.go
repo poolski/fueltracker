@@ -1,175 +1,122 @@
 package fueldata
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
-	"net/url"
 	"os"
-	"strings"
 	"time"
 
 	"github.com/olekukonko/tablewriter"
 	"github.com/poolski/fueltracker/types"
-	"github.com/spf13/viper"
-	"golang.org/x/text/cases"
-	"golang.org/x/text/language"
 )
 
-const fuelPriceEndpoint = "api/datapackage/FuelPriceData"
-const (
-	FuelTypeUnleaded      = "Unleaded"
-	FuelTypeSuperUnleaded = "Super Unleaded"
-	FuelTypeDiesel        = "Diesel"
-	FuelTypePremiumDiesel = "Premium Diesel"
-)
-
-type FuelData struct {
-	APIKey       string
-	BaseURL      string
-	SnitchAPIKey string
-	titleCaser   cases.Caser
+var endpoints = []string{
+	"https://applegreenstores.com/fuel-prices/data.json",
+	"https://fuelprices.asconagroup.co.uk/newfuel.json",
+	"https://storelocator.asda.com/fuel_prices_data.json",
+	"https://www.bp.com/en_gb/united-kingdom/home/fuelprices/fuel_prices_data.json",
+	"https://fuelprices.esso.co.uk/latestdata.json",
+	"https://jetlocal.co.uk/fuel_prices_data.json",
+	"https://www.morrisons.com/fuel-prices/fuel.json",
+	"https://moto-way.com/fuel-price/fuel_prices.json",
+	"https://fuel.motorfuelgroup.com/fuel_prices_data.json",
+	"https://www.rontec-servicestations.co.uk/fuel-prices/data/fuel_prices_data.json",
+	"https://api.sainsburys.co.uk/v1/exports/latest/fuel_prices_data.json",
+	"https://www.sgnretail.uk/files/data/SGN_daily_fuel_prices.json",
+	"https://www.shell.co.uk/fuel-prices-data.html",
 }
 
-func New(UkvdAPIKey string) *FuelData {
-	return &FuelData{
-		APIKey:       UkvdAPIKey,
-		BaseURL:      "https://uk1.ukvehicledata.co.uk",
-		SnitchAPIKey: viper.GetString("snitch_api_key"),
-		titleCaser:   cases.Title(language.English, cases.NoLower),
+func GetAllFuelPrices() ([]types.Station, error) {
+	res := []types.Station{}
+	client := http.Client{
+		Timeout: 10 * time.Second,
 	}
+	for _, ep := range endpoints {
+		epResponse := &types.FuelDataResponse{}
+		fetchWithCaching(client, ep, epResponse)
+
+		res = append(res, epResponse.Stations...)
+
+	}
+	return res, nil
 }
 
-type QueryOpts struct {
-	Postcode string
-	FuelType string
-	Location string
-}
+func fetchWithCaching(client http.Client, ep string, epResponse *types.FuelDataResponse) {
+	// Generate a hash of the endpoint to use as a cache key
+	hash := sha256.Sum256([]byte(ep))
+	hashString := hex.EncodeToString(hash[:])
+	cachePath := fmt.Sprintf("cache/%s.json", hashString)
 
-func (c *FuelData) doAPICall(opts QueryOpts) (*types.FuelDataResponse, error) {
-	u, _ := url.Parse(c.BaseURL)
-
-	u.Path = fuelPriceEndpoint
-
-	q := u.Query()
-	q.Set("v", "2")
-	q.Set("api_nullitems", "1")
-	q.Set("auth_apikey", c.APIKey)
-	q.Set("key_POSTCODE", strings.ToUpper(opts.Postcode))
-
-	u.RawQuery = q.Encode()
-
-	res, err := http.Get(u.String())
-	if err != nil {
-		return nil, err
-	}
-
-	defer res.Body.Close()
-	body, err := io.ReadAll(res.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	data := types.RawAPIResponse{}
-
-	err = json.Unmarshal(body, &data)
-	if err != nil {
-		return nil, err
-	}
-
-	if data.Response.StatusCode != "Success" {
-		return nil, errors.New(data.Response.StatusMessage)
-	}
-	return &data.Response, nil
-}
-
-// GetFuelPrices takes a Postcode and a FuelType to show the stations
-// which sell that fuel in the search radius for Postcode.
-func (c *FuelData) GetFuelPrices(opts QueryOpts) ([]*types.SpecificFuelPrice, error) {
-	var prices []*types.SpecificFuelPrice
-	if opts.FuelType == "" {
-		return nil, errors.New("please specify fuel type")
-	}
-
-	// Title case the fuel type for matching on later
-	opts.FuelType = c.titleCaser.String(opts.FuelType)
-
-	fd, err := c.doAPICall(opts)
-	if err != nil {
-		return nil, err
-	}
-
-	for _, stn := range fd.DataItems.FuelStationDetails.FuelStationList {
-		// If the Location query param is set, skip through the list until we
-		// find a fuel station that matches.
-		if opts.Location != "" {
-			if stn.Name != opts.Location {
-				continue
-			}
-		}
-
-		switch opts.FuelType {
-		case FuelTypeUnleaded:
-			if stn.Features.Fuel.HasUnleaded {
-				prices = append(prices, filterPriceByFuel(stn, FuelTypeUnleaded))
-			}
-		case FuelTypeSuperUnleaded:
-			if stn.Features.Fuel.HasSuperUnleaded {
-				prices = append(prices, filterPriceByFuel(stn, FuelTypeSuperUnleaded))
-			}
-		case FuelTypeDiesel:
-			if stn.Features.Fuel.HasDiesel {
-				prices = append(prices, filterPriceByFuel(stn, FuelTypeDiesel))
-			}
-		case FuelTypePremiumDiesel:
-			if stn.Features.Fuel.HasPremiumDiesel {
-				prices = append(prices, filterPriceByFuel(stn, FuelTypePremiumDiesel))
+	// Check if the cache exists and is valid. Return the cached data if it is.
+	if cacheData, err := os.ReadFile(cachePath); err == nil {
+		var cacheItem CacheItem
+		if err := json.Unmarshal(cacheData, &cacheItem); err == nil {
+			if cacheItem.IsValid() {
+				fmt.Printf("using cached data for %s - %v remaining\n", ep, time.Until(cacheItem.Timestamp.Add(time.Hour)))
+				err = json.Unmarshal(cacheItem.Data, &epResponse)
+				if err != nil {
+					fmt.Printf("error unmarshaling response from %s: %v\n", ep, err)
+				}
+				return
 			}
 		}
 	}
-	if len(prices) == 0 {
-		prices = append(prices, &types.SpecificFuelPrice{
-			Station:    "NOTHING FOUND",
-			FuelType:   "NOTHING FOUND",
-			Price:      0,
-			RecordedAt: "",
-			MonthYear:  "",
-		})
-	}
-	return prices, nil
+
+	// If the cache doesn't exist or is invalid, fetch the data and cache it
+	readEndpointWithCache(client, ep, cachePath, epResponse)
 }
 
-func filterPriceByFuel(stn types.FuelStation, ft string) *types.SpecificFuelPrice {
-	sfp := &types.SpecificFuelPrice{}
-	timeFormat := "1/2/2006 3:04:05 PM"
-	for _, fp := range stn.FuelPriceList {
-		timestamp, err := time.Parse(timeFormat, fp.LatestRecordedPrice.TimeRecorded)
-		if err != nil {
-			log.Println(err)
-		}
-		if fp.FuelType == ft {
-			sfp.Station = stn.Name
-			sfp.FuelType = ft
-			sfp.Price = fp.LatestRecordedPrice.InGbp
-			sfp.RecordedAt = timestamp.Local().Format("02/01/2006")
-			sfp.MonthYear = timestamp.Local().Format("1/2006")
+func readEndpointWithCache(client http.Client, ep string, cachePath string, epResponse *types.FuelDataResponse) {
+	// Create the cache directory if it doesn't exist
+	if _, err := os.Stat("cache"); os.IsNotExist(err) {
+		if err = os.Mkdir("cache", 0755); err != nil {
+			fmt.Printf("error creating cache directory: %v\n", err)
 		}
 	}
-	return sfp
+
+	// Fetch the data
+	fmt.Printf("fetching data from %s\n", ep)
+	resp, err := client.Get(ep)
+	if err != nil {
+		fmt.Printf("error calling %s: %v\n", ep, err)
+	}
+	defer resp.Body.Close()
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		fmt.Printf("error reading response from %s: %v\n", ep, err)
+	}
+
+	// Cache the response
+	cacheItem := CacheItem{
+		Timestamp: time.Now(),
+		Data:      body,
+	}
+
+	if data, err := json.Marshal(cacheItem); err == nil {
+		if err := os.WriteFile(cachePath, data, 0644); err != nil {
+			fmt.Printf("error writing cache file: %v\n", err)
+		}
+	}
+
+	err = json.Unmarshal(cacheItem.Data, &epResponse)
+	if err != nil {
+		fmt.Printf("error unmarshaling cached response from %s: %v\n", ep, err)
+	}
 }
 
 func PrintFuelPrices(records []*types.SpecificFuelPrice) {
 	// Set up the table
 	table := tablewriter.NewWriter(os.Stdout)
-	table.SetHeader([]string{"Location", "Fuel Type", "Price", "Last Recorded At"})
+	table.SetHeader([]string{"Site ID", "Brand", "Postcode", "Fuel Type", "Price", "Last Recorded At"})
 	var tblData [][]string
 
 	// Populate the table
 	for _, r := range records {
-		tblData = append(tblData, []string{r.Station, r.FuelType, fmt.Sprintf("%f", r.Price), r.RecordedAt})
+		tblData = append(tblData, []string{r.SiteID, r.Brand, r.Postcode, r.FuelTypeCode, fmt.Sprintf("%f", r.Price), r.RecordedAt})
 	}
 
 	// Draw the table
@@ -177,4 +124,16 @@ func PrintFuelPrices(records []*types.SpecificFuelPrice) {
 		table.Append(v)
 	}
 	table.Render()
+}
+
+type CacheItem struct {
+	Timestamp time.Time
+	Data      []byte
+}
+
+func (c *CacheItem) IsValid() bool {
+	if time.Since(c.Timestamp) < time.Hour {
+		return true
+	}
+	return false
 }
