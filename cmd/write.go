@@ -1,14 +1,12 @@
 package cmd
 
 import (
-	"errors"
 	"fmt"
 	"log"
 
-	"github.com/PremiereGlobal/go-deadmanssnitch"
 	"github.com/poolski/fueltracker/config"
-	"github.com/poolski/fueltracker/fueldata"
 	"github.com/poolski/fueltracker/sheets"
+	"github.com/poolski/fueltracker/types"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -22,14 +20,11 @@ var writeCmd = &cobra.Command{
 }
 
 func doWrite(cmd *cobra.Command, args []string) error {
-	postcode, _ := cmd.Flags().GetString("postcode")
-	fuel, _ := cmd.Flags().GetString("fuel")
-	station, err := cmd.Flags().GetString("station")
-	if err != nil {
-		return errors.New("station flag required but not set")
-	}
+	// postcode := cmd.Flags().Lookup("postcode").Value.String()
+	fuelCode := cmd.Flags().Lookup("fuel").Value.String()
+	station := cmd.Flags().Lookup("site-id").Value.String()
 
-	log.Printf("fetching %s fuel prices for %s...", fuel, station)
+	log.Printf("fetching %s fuel prices for %s...", fuelCode, station)
 
 	cfg := &config.GoogleConfig{
 		CredentialsPath: viper.GetString("google.credentials_path"),
@@ -37,34 +32,31 @@ func doWrite(cmd *cobra.Command, args []string) error {
 		WorksheetRange:  viper.GetString("google.worksheet_range"),
 	}
 
-	opts := fueldata.QueryOpts{
-		Postcode: postcode,
-		FuelType: fuel,
-		Location: station,
-	}
-
 	sheets, err := sheets.New(cfg)
 	if err != nil {
 		return fmt.Errorf("creating google sheets connection: %w", err)
 	}
 
-	c := fueldata.New(viper.GetString("ukvd_api_key"))
-
-	records, err := c.GetFuelPrices(opts)
-	if err != nil {
-		return fmt.Errorf("getting fuel prices: %w", err)
-	}
+	records := []*types.SpecificFuelPrice{{
+		Brand:        "foo",
+		FuelTypeCode: FuelTypeDiesel,
+		Price:        0.0,
+		RecordedAt:   "",
+	}}
+	// if err != nil {
+	// 	return fmt.Errorf("getting fuel prices: %w", err)
+	// }
 
 	if err := sheets.Write(records[0]); err != nil {
 		return err
 	} else {
 		// If you don't have a Dead Man's Snitch account, we won't do this.
-		if c.SnitchAPIKey != "" {
-			dms := deadmanssnitch.NewClient(c.SnitchAPIKey)
-			if err := dms.CheckIn(viper.GetString("snitch_id")); err != nil {
-				log.Printf("writing to DMS: %v", err)
-			}
-		}
+		// if c.SnitchAPIKey != "" {
+		// 	dms := deadmanssnitch.NewClient(c.SnitchAPIKey)
+		// 	if err := dms.CheckIn(viper.GetString("snitch_id")); err != nil {
+		// 		log.Printf("writing to DMS: %v", err)
+		// 	}
+		// }
 		log.Println("successfully written latest price to Google Sheets")
 		return nil
 	}
