@@ -35,7 +35,7 @@ func (s *GSheets) Write(rec *types.SpecificFuelPrice) error {
 
 	var vr sheets.ValueRange
 
-	vals := []interface{}{rec.RecordedAt, rec.Station, rec.FuelType, rec.Price}
+	vals := []interface{}{rec.RecordedAt, rec.FuelTypeCode, rec.Price}
 	vr.Values = append(vr.Values, vals)
 
 	_, err := s.Service.Spreadsheets.Values.Append(
